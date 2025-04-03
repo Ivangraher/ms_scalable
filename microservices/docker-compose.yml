@@ -1,19 +1,20 @@
-version: '3'
 services:
   ### Posgres database for Inventory
   db-inventory:
     container_name: db-inventory
-    image: postgres:1
+    image: postgres:15.2
     restart: unless-stopped
     environment:
       POSTGRES_DB: ms_inventory
       POSTGRES_USER: inventory
       POSTGRES_PASSWORD: Test123
     ports:
-      - 5431:5431
+      - 5431:5432  # Acceso externo por 5431, el contenedor usa el 5432
     expose:
-      - 5431
-    command: -p 5431
+      - 5432  # Expone internamente el puerto 5432
+    command: -p 5432  # Configuración explícita del puerto de escucha
+
+
 
   ### MySQL database for Orders
   db-orders:
@@ -40,7 +41,15 @@ services:
       POSTGRES_USER: products
       POSTGRES_PASSWORD: Test123
     ports:
-      - 5432:5432
+      - 54321:5432
     expose:
       - 5432
     command: -p 5432
+
+    ### Adminer (Interfaz de gestión para bases de datos)
+  adminer:
+    container_name: adminer
+    image: adminer:latest
+    restart: unless-stopped
+    ports:
+      - 8080:8080  # Adminer estará accesible en http://localhost:8080
