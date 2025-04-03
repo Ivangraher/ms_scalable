@@ -41,17 +41,16 @@ public class InventoryController {
         }
     }
 
-
-    /*@PostMapping("/in-stock")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public List<String> areInStock(@RequestBody List<OrderItemRequest> orderItems) {
-        List<String> errores = service.areInStock(orderItems);
-
-        if (!errores.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.join(", ", errores));
+    @PostMapping("/update-stock")
+    public ResponseEntity<Void> updateStock(@RequestBody List<OrderItemRequest> orderItems) {
+        try {
+            service.updateStock(orderItems); // Llamada al servicio que reduce el stock
+            return ResponseEntity.ok().build();
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
 
-        return List.of("Todos los productos tienen stock suficiente");
-    }*/
+
 
 }

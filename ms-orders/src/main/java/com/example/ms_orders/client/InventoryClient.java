@@ -38,5 +38,21 @@ public class InventoryClient {
     }
 
 
+    public void updateStock(List<OrderItemRequest> orderItems) {
+        try {
+            // Llamada POST para actualizar el stock
+            webClient.post()
+                    .uri("/update-stock") // El endpoint para actualizar el stock
+                    .bodyValue(orderItems)
+                    .retrieve()
+                    .bodyToMono(Void.class)
+                    .block();
+            log.info("Stock actualizado correctamente para los items: {}", orderItems);
+        } catch (WebClientResponseException ex) {
+            throw new RuntimeException("Error al actualizar el inventario", ex);
+        }
+    }
+
+
 }
 

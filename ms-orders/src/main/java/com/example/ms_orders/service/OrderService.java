@@ -54,6 +54,9 @@ public class OrderService {
         order.getOrderItems().forEach(item -> item.setOrder(order));
 
         repository.save(order);
+
+        inventoryClient.updateStock(orderRequest.getOrderItems());
+
         return mapper.toResponse(order);
     }
 

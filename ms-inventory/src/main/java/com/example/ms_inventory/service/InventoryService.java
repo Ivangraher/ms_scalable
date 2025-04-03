@@ -55,6 +55,23 @@ public class InventoryService {
     }
 
 
+    public void updateStock(List<OrderItemRequest> orderItems) {
+        // Asegúrate de que el stock se reduce adecuadamente
+        for (OrderItemRequest item : orderItems) {
+            Inventory inventory = repository.findBySku(item.getSku())
+                    .orElseThrow(() -> new IllegalArgumentException("Producto con SKU " + item.getSku() + " no encontrado"));
+
+            if (inventory.getQuantity() < item.getQuantity()) {
+                throw new IllegalArgumentException("Stock insuficiente para SKU: " + item.getSku());
+            }
+
+            inventory.setQuantity(inventory.getQuantity() - item.getQuantity());
+            repository.save(inventory);
+            System.out.println("SKU actualizado: " + item.getSku() + " - Nuevo stock: " + inventory.getQuantity());
+        }
+    }
+
+
     /*public List<String> areInStock(List<OrderItemRequest> orderItems) {
 
         // Convertir inventario a un Map para búsqueda rápida O(1)
