@@ -19,6 +19,7 @@
         <module name="api-gateway" />
         <module name="ms-products" />
         <module name="ms-inventory" />
+        <module name="discovery-service" />
         <module name="ms-orders" />
       </profile>
     </annotationProcessing>
@@ -26,6 +27,7 @@
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="api-gateway" options="-parameters" />
+      <module name="discovery-service" options="-parameters" />
       <module name="microservices" options="" />
       <module name="ms-inventory" options="-parameters" />
       <module name="ms-orders" options="-parameters" />
