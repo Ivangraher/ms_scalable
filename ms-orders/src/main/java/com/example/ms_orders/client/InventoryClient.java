@@ -1,8 +1,10 @@
 package com.example.ms_orders.client;
 
 import com.example.ms_orders.dto.OrderItemRequest;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -15,6 +17,14 @@ import java.util.List;
 public class InventoryClient {
 
     private final WebClient webClient;
+
+    @Autowired
+    public InventoryClient(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder
+                .baseUrl("lb://ms-inventory/api/inventory")
+                .build();
+    }
+
 
     public boolean checkStock(List<OrderItemRequest> orderItems) {
         log.info("Verificando inventario con los items: {}", orderItems);

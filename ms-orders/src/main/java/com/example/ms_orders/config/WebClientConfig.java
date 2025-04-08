@@ -17,10 +17,16 @@ public class WebClientConfig {
     }*/
 
 
-    @Bean
+    /*@Bean
     @LoadBalanced
     public WebClient client(){
         return WebClient.builder().baseUrl("lb://ms-inventory/api/inventory").build();
+    }*/
+
+    @Bean
+    @LoadBalanced
+    public WebClient.Builder loadBalancedWebClientBuilder() {
+        return WebClient.builder();
     }
 }
 
