@@ -26,6 +26,7 @@
 		<module>../ms-products</module>
 		<module>../api-gateway</module>
 		<module>../discovery-service</module>
+		<module>../ms-notification</module>
 	</modules>
 	<dependencies>
 

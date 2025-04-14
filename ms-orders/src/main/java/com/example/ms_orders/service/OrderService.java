@@ -3,10 +3,14 @@ package com.example.ms_orders.service;
 import com.example.ms_orders.client.InventoryClient;
 import com.example.ms_orders.dto.OrderRequest;
 import com.example.ms_orders.dto.OrderResponse;
+import com.example.ms_orders.events.OrderEvent;
 import com.example.ms_orders.mapper.OrderMapper;
 import com.example.ms_orders.model.Order;
 import com.example.ms_orders.model.OrderItem;
+import com.example.ms_orders.model.OrderStatus;
 import com.example.ms_orders.repository.OrderRepository;
+import com.example.ms_orders.utils.JsonUtils;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,13 +39,16 @@ public class OrderService {
     @Autowired
     private InventoryClient inventoryClient;
 
+    @Autowired
+    private KafkaTemplate<String, String> template;
+
 
     public OrderResponse createOrder(OrderRequest orderRequest) {
 
         boolean isInStock = inventoryClient.checkStock(orderRequest.getOrderItems());
 
         if (!isInStock) {
-            throw new IllegalArgumentException("Uno o más productos no están en stock");
+            throw new IllegalArgumentException("Some of the products aren't in stock");
         }
 
         Order order = Order.builder()
@@ -54,6 +61,10 @@ public class OrderService {
         order.getOrderItems().forEach(item -> item.setOrder(order));
 
         repository.save(order);
+
+        template.send("orders-topic", JsonUtils.toJson(
+                new OrderEvent(order.getOrderNumber(), order.getOrderItems().size(), OrderStatus.CREATED)
+        ));
 
         inventoryClient.updateStock(orderRequest.getOrderItems());
 

@@ -6,6 +6,7 @@ import com.example.ms_products.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,12 +21,14 @@ public class ProductController {
 
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public void addProduct(@RequestBody ProductRequest request){
         service.addProduct(request);
     }
 
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('ROLE_USER')")
     public List<ProductResponse> getAllProducts(){
         return service.getAllProducts();
     }

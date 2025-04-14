@@ -15,11 +15,23 @@
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.4.4/spring-boot-configuration-processor-3.4.4.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.4.4/spring-boot-configuration-processor-3.4.4.jar" />
         </processorPath>
         <module name="api-gateway" />
+        <module name="ms-notification" />
         <module name="ms-products" />
         <module name="ms-inventory" />
         <module name="discovery-service" />
+      </profile>
+      <profile name="Annotation profile for ms-orders" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.4.4/spring-boot-configuration-processor-3.4.4.jar" />
+        </processorPath>
         <module name="ms-orders" />
       </profile>
     </annotationProcessing>
@@ -30,6 +42,7 @@
       <module name="discovery-service" options="-parameters" />
       <module name="microservices" options="" />
       <module name="ms-inventory" options="-parameters" />
+      <module name="ms-notification" options="-parameters" />
       <module name="ms-orders" options="-parameters" />
       <module name="ms-products" options="-parameters" />
     </option>
