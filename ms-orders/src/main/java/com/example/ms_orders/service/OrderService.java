@@ -10,6 +10,8 @@ import com.example.ms_orders.model.OrderItem;
 import com.example.ms_orders.model.OrderStatus;
 import com.example.ms_orders.repository.OrderRepository;
 import com.example.ms_orders.utils.JsonUtils;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,49 +29,64 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OrderService {
 
-    @Autowired
-    private OrderRepository repository;
+    private final OrderRepository repository;
 
-    @Autowired
-    private OrderMapper mapper;
+    private final OrderMapper mapper;
 
-    @Autowired
-    private WebClient.Builder client;
+    private final WebClient.Builder client;
 
-    @Autowired
-    private InventoryClient inventoryClient;
+    private final InventoryClient inventoryClient;
 
-    @Autowired
-    private KafkaTemplate<String, String> template;
+    private final KafkaTemplate<String, String> template;
+
+    private final ObservationRegistry observationRegistry;
 
 
     public OrderResponse createOrder(OrderRequest orderRequest) {
 
-        boolean isInStock = inventoryClient.checkStock(orderRequest.getOrderItems());
+        // Observa la consulta al inventario
+        boolean isInStock = Boolean.TRUE.equals(Observation.createNotStarted("inventory-stock-check", observationRegistry)
+                .observe(() -> inventoryClient.checkStock(orderRequest.getOrderItems())));
 
         if (!isInStock) {
             throw new IllegalArgumentException("Some of the products aren't in stock");
         }
 
-        Order order = Order.builder()
-                .orderNumber(UUID.randomUUID().toString())
-                .orderItems(orderRequest.getOrderItems().stream()
-                        .map(item -> mapper.toEntity(item, null))
-                        .collect(Collectors.toList()))
-                .build();
+        // Observa la creación de la orden y guardado en la base de datos
+        Order order = Observation.createNotStarted("order-persistence", observationRegistry)
+                .observe(() -> {
+                    Order newOrder = Order.builder()
+                            .orderNumber(UUID.randomUUID().toString())
+                            .orderItems(orderRequest.getOrderItems().stream()
+                                    .map(item -> mapper.toEntity(item, null))
+                                    .collect(Collectors.toList()))
+                            .build();
 
-        order.getOrderItems().forEach(item -> item.setOrder(order));
+                    newOrder.getOrderItems().forEach(item -> item.setOrder(newOrder));
+                    repository.save(newOrder);
+                    return newOrder;
+                });
 
-        repository.save(order);
+        // Observa la publicación del evento a Kafka
+        Observation.createNotStarted("order-kafka-publish", observationRegistry)
+                .observe(() -> {
+                    template.send("orders-topic", JsonUtils.toJson(
+                            new OrderEvent(order.getOrderNumber(), order.getOrderItems().size(), OrderStatus.CREATED)
+                    ));
+                    return null;
+                });
 
-        template.send("orders-topic", JsonUtils.toJson(
-                new OrderEvent(order.getOrderNumber(), order.getOrderItems().size(), OrderStatus.CREATED)
-        ));
-
-        inventoryClient.updateStock(orderRequest.getOrderItems());
+        // Observa la actualización de stock
+        Observation.createNotStarted("inventory-update-stock", observationRegistry)
+                .observe(() -> {
+                    inventoryClient.updateStock(orderRequest.getOrderItems());
+                    return null;
+                });
 
         return mapper.toResponse(order);
     }
+
+
 
     @Transactional(readOnly = true)
     public List<OrderResponse> getAllOrders() {
